@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ASENDIA Capacity Planner</title>
+    <link rel="icon" type="image/png" href="img/logo_company.png">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Varela+Round&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Varela Round"', 'sans-serif'], 
+                    },
+                    colors: {
+                        zinc: {
+                            50: '#fafafa',
+                            100: '#f4f4f5',
+                            200: '#e4e4e7',
+                            300: '#d4d4d8',
+                            400: '#a1a1aa',
+                            500: '#71717a',
+                            600: '#52525b',
+                            700: '#3f3f46',
+                            800: '#27272a',
+                            900: '#18181b',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Force Varela Round Everywhere */
+        body, input, select, button, textarea {
+            font-family: 'Varela Round', sans-serif !important;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background-color: #d4d4d8; border-radius: 20px; }
+        
+        .fade-in { animation: fadeIn 0.4s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { 
+            -webkit-appearance: none; 
+            margin: 0; 
+        }
+    </style>
+</head>
+<body class="bg-zinc-200 min-h-screen flex items-center justify-center p-4 selection:bg-zinc-800 selection:text-white overflow-hidden">
+
+    <div class="w-full max-w-[1400px] h-[92vh] bg-white rounded-2xl shadow-2xl border border-zinc-300 flex flex-col overflow-hidden relative">
+        
+        <div class="h-12 bg-zinc-50 border-b border-zinc-200 flex items-center justify-between px-6 shrink-0 z-30">
+            <div class="flex items-center gap-2">
+                <div class="w-3 h-3 rounded-full bg-red-400/80 hover:bg-red-500 transition-colors"></div>
+                <div class="w-3 h-3 rounded-full bg-amber-400/80 hover:bg-amber-500 transition-colors"></div>
+                <div class="w-3 h-3 rounded-full bg-green-400/80 hover:bg-green-500 transition-colors"></div>
+            </div>
+            <div class="flex-1 max-w-xl bg-white border border-zinc-200 rounded-md h-7 flex items-center justify-center text-xs text-zinc-400 tracking-wide mx-4">
+                <i data-lucide="lock" class="w-3 h-3 mr-2 opacity-50"></i>
+                mfg.tech.center/planner
+            </div>
+            <div class="w-14"></div>
+        </div>
+
+        <div class="flex flex-1 overflow-hidden">
+            
+            <aside class="w-64 bg-zinc-50/80 border-r border-zinc-200 flex flex-col py-8 px-6 justify-between backdrop-blur-sm">
+                <div>
+                    <div class="flex items-center gap-3 mb-10">
+                        <div class="w-9 h-9 bg-zinc-900 rounded-lg flex items-center justify-center text-white shadow-lg">
+                            <i data-lucide="activity" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <span class="font-bold text-lg tracking-tight text-zinc-900 block leading-none">Capacity</span>
+                            <span class="font-bold text-lg tracking-tight text-zinc-900 block leading-none">Planner</span>
+                        </div>
+                    </div>
+
+                    <nav class="space-y-1">
+                        <p class="px-3 text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-3 mt-6">Modules</p>
+                        <button onclick="switchTab('rfg')" id="nav-rfg" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg bg-zinc-200 text-zinc-900 text-sm font-medium transition-all text-left">
+                            <i data-lucide="cpu" class="w-4 h-4"></i> RF Generator
+                        </button>
+                        <button onclick="switchTab('rfm')" id="nav-rfm" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 text-sm font-medium transition-all text-left">
+                            <i data-lucide="layers" class="w-4 h-4"></i> RF Matcher
+                        </button>
+                        <button onclick="switchTab('evc')" id="nav-evc" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 text-sm font-medium transition-all text-left">
+                            <i data-lucide="zap" class="w-4 h-4"></i> EVC
+                        </button>
+                    </nav>
+                </div>
+
+                <div class="flex items-center gap-3 px-3 pt-6 border-t border-zinc-200">
+                    <div class="w-8 h-8 rounded-lg overflow-hidden border border-zinc-200 bg-white">
+                        <img src="img/logo_company.png" alt="MTC" class="w-full h-full object-cover">
+                    </div>
+                    <div class="flex flex-col min-w-0">
+                        <span class="text-[10px] font-bold text-zinc-900 leading-tight">Manufacturing<br>Technology Center</span>
+                        <span class="text-[9px] text-zinc-500 mt-0.5">V1.0</span>
+                    </div>
+                </div>
+            </aside>
+
+            <main class="flex-1 overflow-y-auto bg-zinc-100/50 scroll-smooth p-8 md:p-12 relative">
+                
+                <div class="absolute top-6 right-8 flex items-center gap-4 bg-white/80 backdrop-blur-md px-4 py-2 rounded-full border border-zinc-200 shadow-sm z-20">
+                    <div class="flex items-center gap-2 border-r border-zinc-200 pr-4">
+                        <span class="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Year</span>
+                        <select id="yearSelector" class="bg-transparent font-bold text-zinc-800 text-sm outline-none cursor-pointer" onchange="calculateAll()"></select>
+                        <span class="text-xs text-zinc-400">(<span id="annualWorkingDaysDisplay">245</span>d)</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Hrs/Day</span>
+                        <input type="number" id="globalWorkTime" value="6.0" step="0.1" class="w-12 bg-transparent font-bold text-zinc-800 text-sm outline-none text-right" onchange="calculateAll()">
+                    </div>
+                </div>
+
+                <div id="view-rfg" class="max-w-5xl mx-auto fade-in">
+                    <header class="mb-8">
+                        <span class="text-xs font-bold tracking-widest text-zinc-400 uppercase mb-2 block">Combined Model</span>
+                        <h1 class="text-3xl md:text-4xl font-medium text-zinc-900">RF Generator</h1>
+                        <p class="text-zinc-500 mt-2 text-lg">Capacity planning for 2K & 1K integrated platforms.</p>
+                    </header>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                        <div class="lg:col-span-8 space-y-6">
+                            <div class="bg-white rounded-xl border border-zinc-200 p-6 shadow-sm">
+                                <h3 class="text-sm font-bold text-zinc-900 mb-4 flex items-center gap-2">
+                                    <i data-lucide="users" class="w-4 h-4 text-zinc-400"></i> Resources
+                                </h3>
+                                <div class="grid grid-cols-3 gap-6">
+                                    <div>
+                                        <label class="block text-[10px] font-bold text-zinc-400 uppercase mb-1">Assy HC</label>
+                                        <input type="number" id="rfg_total_assy_worker" value="6.0" step="0.1" class="w-full bg-zinc-50 border border-zinc-200 rounded-lg px-3 py-2 text-zinc-800 focus:outline-none focus:border-zinc-400 transition-colors" onchange="calculateAll()">
+                                    </div>
+                                    <div>
+                                        <label class="block text-[10px] font-bold text-zinc-400 uppercase mb-1">Test HC</label>
+                                        <input type="number" id="rfg_total_test_worker" value="3.0" step="0.1" class="w-full bg-zinc-50 border border-zinc-200 rounded-lg px-3 py-2 text-zinc-800 focus:outline-none focus:border-zinc-400 transition-colors" onchange="calculateAll()">
+                                    </div>
+                                    <div>
+                                        <label class="block text-[10px] font-bold text-zinc-400 uppercase mb-1">Lines</label>
+                                        <input type="number" id="rfg_total_lines" value="4" class="w-full bg-zinc-50 border border-zinc-200 rounded-lg px-3 py-2 text-zinc-800 focus:outline-none focus:border-zinc-400 transition-colors" onchange="calculateAll()">
+                                        <div class="text-[10px] mt-1 text-right text-zinc-400">Max: <span id="rfg_max_usable_lines" class="font-bold text-zinc-600">0</span></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="bg-white rounded-xl border border-zinc-200 p-6 shadow-sm relative overflow-hidden">
+                                    <div class="absolute top-0 right-0 w-16 h-16 bg-blue-50 rounded-bl-full -mr-8 -mt-8 z-0"></div>
+                                    <h3 class="text-sm font-bold text-zinc-900 mb-4 relative z-10">Strategy</h3>
+                                    <div class="space-y-4 relative z-10">
+                                        <div>
+                                            <label class="block text-[10px] font-bold text-blue-500 uppercase mb-1">1K Allocation %</label>
+                                            <div class="flex items-center gap-2">
+                                                <input type="number" id="rfg_1k_alloc_pct" value="40" class="flex-1 bg-blue-50/50 border border-blue-100 rounded-lg px-3 py-2 text-blue-900 font-bold focus:outline-none focus:border-blue-300" onchange="calculateAll()">
+                                                <span class="text-xs text-zinc-400">2K: <span id="rfg_2k_alloc_disp">60</span>%</span>
+                                            </div>
+                                        </div>
+                                        <div class="grid grid-cols-2 gap-4 pt-2 border-t border-zinc-100">
+                                            <div>
+                                                <label class="block text-[10px] font-bold text-zinc-400 uppercase mb-1">1K Assy Ratio</label>
+                                                <input type="number" id="rfg_1k_assy_ratio" value="80" class="w-full bg-zinc-50 border border-zinc-200 rounded-lg px-2 py-1.5 text-sm text-zinc-800" onchange="calculateAll()">
+                                            </div>
+                                            <div>
+                                                <label class="block text-[10px] font-bold text-zinc-400 uppercase mb-1">1K Test Ratio</label>
+                                                <input type="number" id="rfg_1k_test_ratio" value="100" class="w-full bg-zinc-50 border border-zinc-200 rounded-lg px-2 py-1.5 text-sm text-zinc-800" onchange="calculateAll()">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="bg-white rounded-xl border border-zinc-200 p-6 shadow-sm">
+                                    <h3 class="text-sm font-bold text-zinc-900 mb-4">Baseline (2K)</h3>
+                                    <div class="space-y-4">
+                                        <div>
+                                            <label class="block text-[10px] font-bold text-zinc-400 uppercase mb-1">Assy TAT (Hrs)</label>
+                                            <input type="number" id="rfg_2k_base_assy_tat" value="5.00" step="0.01" class="w-full bg-zinc-50 border border-zinc-200 rounded-lg px-3 py-2 text-zinc-800" onchange="calculateAll()">
+                                        </div>
+                                        <div>
+                                            <label class="block text-[10px] font-bold text-zinc-400 uppercase mb-1">Test TAT (Hrs)</label>
+                                            <input type="number" id="rfg_2k_base_test_tat" value="4.00" step="0.01" class="w-full bg-zinc-50 border border-zinc-200 rounded-lg px-3 py-2 text-zinc-800" onchange="calculateAll()">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="lg:col-span-4 flex flex-col">
+                            <div class="rounded-2xl p-8 text-center flex flex-col justify-center h-full shadow-xl relative overflow-hidden group">
+                                <div class="absolute inset-0 z-0">
+                                    <img src="img/back_cap.jpg" class="w-full h-full object-cover" alt="Background" onerror="this.style.display='none'">
+                                </div>
+                                <div class="absolute inset-0 z-0 bg-zinc-900/95"></div>
+
+                                <div class="relative z-10">
+                                    <h4 class="text-xs font-bold text-zinc-400 uppercase tracking-[0.2em] mb-8">Total Capacity</h4>
+                                    
+                                    <div class="mb-8">
+                                        <div class="text-[10px] font-bold text-zinc-300 uppercase mb-1">Yearly Output</div>
+                                        <div class="text-4xl md:text-5xl font-medium text-white tracking-tight" id="rfg_total_capa_y">0</div>
+                                    </div>
+
+                                    <div class="grid grid-cols-2 gap-4 border-t border-zinc-600/50 pt-6">
+                                        <div>
+                                            <div class="text-[10px] font-bold text-zinc-400 uppercase mb-1">Daily</div>
+                                            <div class="text-lg text-zinc-200" id="rfg_total_capa_d">0</div>
+                                        </div>
+                                        <div>
+                                            <div class="text-[10px] font-bold text-zinc-400 uppercase mb-1">Monthly</div>
+                                            <div class="text-lg text-zinc-200" id="rfg_total_capa_m">0</div>
+                                        </div>
+                                    </div>
+
+                                    <div id="rfg_bottleneck" class="mt-8 inline-block px-3 py-1 rounded-full border border-zinc-500 bg-zinc-600/50 text-[10px] font-bold text-red-200 uppercase tracking-wider">
+                                        Calculating...
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="view-rfm" class="max-w-5xl mx-auto fade-in hidden">
+                    <header class="mb-8">
+                        <span class="text-xs font-bold tracking-widest text-zinc-400 uppercase mb-2 block">Combined Model</span>
+                        <h1 class="text-3xl md:text-4xl font-medium text-zinc-900">RF Matcher</h1>
+                        <p class="text-zinc-500 mt-2 text-lg">Capacity planning for DRFM & SRFM platforms.</p>
+                    </header>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                        <div class="lg:col-span-8 space-y-6">
+                            <div class="bg-white rounded-xl border border-zinc-200 p-6 shadow-sm">
+                                <h3 class="text-sm font-bold text-zinc-900 mb-4 flex items-center gap-2">
+                                    <i data-lucide="users" class="w-4 h-4 text-zinc-400"></i> Resources
+                                </h3>
+                                <div class="grid grid-cols-3 gap-6">
+                                    <div>
+                                        <label class="block text-[10px] font-bold text-zinc-400 uppercase mb-1">Assy HC</label>
+                                        <input type="number" id="rfm_total_assy_worker" value="4.0" step="0.1" class="w-full bg-zinc-50 border border-zinc-200 rounded-lg px-3 py-2 text-zinc-800 focus:outline-none focus:border-zinc-400" onchange="calculateAll()">
+                                    </div>
+                                    <div>
+                                        <label class="block text-[10px] font-bold text-zinc-400 uppercase mb-1">Test HC</label>
+                                        <input type="number" id="rfm_total_test_worker" value="2.5" step="0.1" class="w-full bg-zinc-50 border border-zinc-200 rounded-lg px-3 py-2 text-zinc-800 focus:outline-none focus:border-zinc-400" onchange="calculateAll()">
+                                    </div>
+                                    <div>
+                                        <label class="block text-[10px] font-bold text-zinc-400 uppercase mb-1">Lines</label>
+                                        <input type="number" id="rfm_total_lines" value="3" class="w-full bg-zinc-50 border border-zinc-200 rounded-lg px-3 py-2 text-zinc-800 focus:outline-none focus:border-zinc-400" onchange="calculateAll()">
+                                        <div class="text-[10px] mt-1 text-right text-zinc-400">Max: <span id="rfm_max_usable_lines" class="font-bold text-zinc-600">0</span></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="bg-white rounded-xl border border-zinc-200 p-6 shadow-sm relative overflow-hidden">
+                                    <div class="absolute top-0 right-0 w-16 h-16 bg-indigo-50 rounded-bl-full -mr-8 -mt-8 z-0"></div>
+                                    <h3 class="text-sm font-bold text-zinc-900 mb-4 relative z-10">Strategy</h3>
+                                    <div class="space-y-4 relative z-10">
+                                        <div>
+                                            <label class="block text-[10px] font-bold text-indigo-500 uppercase mb-1">SRFM Alloc %</label>
+                                            <div class="flex items-center gap-2">
+                                                <input type="number" id="rfm_srfm_alloc_pct" value="70" class="flex-1 bg-indigo-50/50 border border-indigo-100 rounded-lg px-3 py-2 text-indigo-900 font-bold focus:outline-none focus:border-indigo-300" onchange="calculateAll()">
+                                                <span class="text-xs text-zinc-400">DRFM: <span id="rfm_drfm_alloc_disp">30</span>%</span>
+                                            </div>
+                                        </div>
+                                        <div class="grid grid-cols-2 gap-4 pt-2 border-t border-zinc-100">
+                                            <div>
+                                                <label class="block text-[10px] font-bold text-zinc-400 uppercase mb-1">SRFM Assy Ratio</label>
+                                                <input type="number" id="rfm_srfm_assy_ratio" value="25" class="w-full bg-zinc-50 border border-zinc-200 rounded-lg px-2 py-1.5 text-sm text-zinc-800" onchange="calculateAll()">
+                                            </div>
+                                            <div>
+                                                <label class="block text-[10px] font-bold text-zinc-400 uppercase mb-1">SRFM Test Ratio</label>
+                                                <input type="number" id="rfm_srfm_test_ratio" value="66" class="w-full bg-zinc-50 border border-zinc-200 rounded-lg px-2 py-1.5 text-sm text-zinc-800" onchange="calculateAll()">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="bg-white rounded-xl border border-zinc-200 p-6 shadow-sm">
+                                    <h3 class="text-sm font-bold text-zinc-900 mb-4">Baseline (DRFM)</h3>
+                                    <div class="space-y-4">
+                                        <div>
+                                            <label class="block text-[10px] font-bold text-zinc-400 uppercase mb-1">Assy TAT (Hrs)</label>
+                                            <input type="number" id="rfm_drfm_base_assy_tat" value="4.00" step="0.01" class="w-full bg-zinc-50 border border-zinc-200 rounded-lg px-3 py-2 text-zinc-800" onchange="calculateAll()">
+                                        </div>
+                                        <div>
+                                            <label class="block text-[10px] font-bold text-zinc-400 uppercase mb-1">Test TAT (Hrs)</label>
+                                            <input type="number" id="rfm_drfm_base_test_tat" value="3.00" step="0.01" class="w-full bg-zinc-50 border border-zinc-200 rounded-lg px-3 py-2 text-zinc-800" onchange="calculateAll()">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="lg:col-span-4 flex flex-col">
+                            <div class="rounded-2xl p-8 text-center flex flex-col justify-center h-full shadow-xl relative overflow-hidden group">
+                                <div class="absolute inset-0 z-0">
+                                    <img src="img/back_cap.jpg" class="w-full h-full object-cover" alt="Background" onerror="this.style.display='none'">
+                                </div>
+                                <div class="absolute inset-0 z-0 bg-zinc-900/95"></div>
+
+                                <div class="relative z-10">
+                                    <h4 class="text-xs font-bold text-zinc-400 uppercase tracking-[0.2em] mb-8">Total Capacity</h4>
+                                    <div class="mb-8">
+                                        <div class="text-[10px] font-bold text-zinc-300 uppercase mb-1">Yearly Output</div>
+                                        <div class="text-4xl md:text-5xl font-medium text-white tracking-tight" id="rfm_total_capa_y">0</div>
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-4 border-t border-zinc-600/50 pt-6">
+                                        <div>
+                                            <div class="text-[10px] font-bold text-zinc-400 uppercase mb-1">Daily</div>
+                                            <div class="text-lg text-zinc-200" id="rfm_total_capa_d">0</div>
+                                        </div>
+                                        <div>
+                                            <div class="text-[10px] font-bold text-zinc-400 uppercase mb-1">Monthly</div>
+                                            <div class="text-lg text-zinc-200" id="rfm_total_capa_m">0</div>
+                                        </div>
+                                    </div>
+                                    <div id="rfm_bottleneck" class="mt-8 inline-block px-3 py-1 rounded-full border border-zinc-500 bg-zinc-600/50 text-[10px] font-bold text-red-200 uppercase tracking-wider">Calculating...</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="view-evc" class="max-w-5xl mx-auto fade-in hidden">
+                    <header class="mb-8">
+                        <span class="text-xs font-bold tracking-widest text-zinc-400 uppercase mb-2 block">Combined & Individual</span>
+                        <h1 class="text-3xl md:text-4xl font-medium text-zinc-900">EVC Series</h1>
+                        <p class="text-zinc-500 mt-2 text-lg">Analysis for Quantum & Tykon platforms.</p>
+                    </header>
+
+                    <div class="bg-white rounded-xl border border-zinc-200 p-6 md:p-8 shadow-sm mb-10">
+                        <h3 class="text-lg font-bold text-zinc-900 mb-6 border-b border-zinc-100 pb-2">Combined Model</h3>
+                        
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                            <div class="space-y-4">
+                                <h4 class="text-xs font-bold text-zinc-400 uppercase">Resources</h4>
+                                <div>
+                                    <label class="block text-[10px] font-bold text-zinc-400 uppercase mb-1">Assy HC</label>
+                                    <input type="number" id="evc_com_total_assy_worker" value="5.0" step="0.1" class="w-full bg-zinc-50 border border-zinc-200 rounded-lg px-3 py-2 text-zinc-800 focus:outline-none focus:border-zinc-400" onchange="calculateAll()">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-bold text-zinc-400 uppercase mb-1">Test HC</label>
+                                    <input type="number" id="evc_com_total_test_worker" value="4.0" step="0.1" class="w-full bg-zinc-50 border border-zinc-200 rounded-lg px-3 py-2 text-zinc-800 focus:outline-none focus:border-zinc-400" onchange="calculateAll()">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-bold text-zinc-400 uppercase mb-1">Lines</label>
+                                    <input type="number" id="evc_com_total_lines" value="4" class="w-full bg-zinc-50 border border-zinc-200 rounded-lg px-3 py-2 text-zinc-800 focus:outline-none focus:border-zinc-400" onchange="calculateAll()">
+                                    <div class="text-[10px] mt-1 text-right text-zinc-400">Max: <span id="evc_com_max_usable_lines" class="font-bold text-zinc-600">0</span></div>
+                                </div>
+                            </div>
+
+                            <div class="space-y-4">
+                                <h4 class="text-xs font-bold text-zinc-400 uppercase">Strategy</h4>
+                                <div>
+                                    <label class="block text-[10px] font-bold text-emerald-500 uppercase mb-1">Tykon Alloc %</label>
+                                    <div class="flex items-center gap-2">
+                                        <input type="number" id="evc_tykon_alloc_pct" value="40" class="flex-1 bg-emerald-50/50 border border-emerald-100 rounded-lg px-3 py-2 text-emerald-900 font-bold focus:outline-none focus:border-emerald-300" onchange="calculateAll()">
+                                        <span class="text-xs text-zinc-400">Quant: <span id="evc_quantum_alloc_disp">60</span>%</span>
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block text-[10px] font-bold text-zinc-400 uppercase mb-1">Tykon Assy R.</label>
+                                        <input type="number" id="evc_tykon_assy_ratio" value="85" class="w-full bg-zinc-50 border border-zinc-200 rounded-lg px-2 py-1.5 text-sm" onchange="calculateAll()">
+                                    </div>
+                                    <div>
+                                        <label class="block text-[10px] font-bold text-zinc-400 uppercase mb-1">Tykon Test R.</label>
+                                        <input type="number" id="evc_tykon_test_ratio" value="80" class="w-full bg-zinc-50 border border-zinc-200 rounded-lg px-2 py-1.5 text-sm" onchange="calculateAll()">
+                                    </div>
+                                </div>
+                                <div>
+                                    <h4 class="text-[10px] font-bold text-zinc-400 uppercase mb-2 mt-2">Baseline (Quantum)</h4>
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <input type="number" id="evc_q_base_assy_tat" value="6.00" step="0.01" class="w-full bg-zinc-50 border border-zinc-200 rounded-lg px-2 py-1.5 text-sm" onchange="calculateAll()">
+                                        <input type="number" id="evc_q_base_test_tat" value="8.00" step="0.01" class="w-full bg-zinc-50 border border-zinc-200 rounded-lg px-2 py-1.5 text-sm" onchange="calculateAll()">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="rounded-xl p-6 text-center flex flex-col justify-center relative overflow-hidden group">
+                                <div class="absolute inset-0 z-0">
+                                    <img src="img/back_cap.jpg" class="w-full h-full object-cover" alt="Background" onerror="this.style.display='none'">
+                                </div>
+                                <div class="absolute inset-0 z-0 bg-zinc-900/95"></div>
+
+                                <div class="relative z-10">
+                                    <div class="text-[10px] font-bold text-zinc-300 uppercase mb-1">Total Yearly Capacity</div>
+                                    <div class="text-3xl font-medium text-white tracking-tight mb-4" id="evc_com_total_capa_y">0</div>
+                                    
+                                    <div class="grid grid-cols-2 gap-2 text-xs text-zinc-400 border-t border-zinc-600/50 pt-3">
+                                        <div>D: <span id="evc_com_total_capa_d" class="text-zinc-300">0</span></div>
+                                        <div>M: <span id="evc_com_total_capa_m" class="text-zinc-300">0</span></div>
+                                    </div>
+                                    <div id="evc_com_bottleneck" class="mt-4 text-[9px] font-bold text-red-200 uppercase">Calculating...</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-white rounded-xl border border-zinc-200 p-6 shadow-sm">
+                            <h3 class="text-sm font-bold text-zinc-900 mb-4 flex justify-between">
+                                Quantum (Indiv.)
+                                <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+                            </h3>
+                            <div class="space-y-4">
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="label-text">Assy TAT</label>
+                                        <input type="number" id="evc_q_assy_tat" value="6.00" step="0.01" class="w-full bg-zinc-50 border border-zinc-200 rounded-lg px-3 py-2 text-zinc-800 text-sm focus:outline-none focus:border-zinc-400" onchange="calculateAll()">
+                                    </div>
+                                    <div>
+                                        <label class="label-text">Assy HC</label>
+                                        <input type="number" id="evc_q_assy_worker" value="3.0" step="0.1" class="w-full bg-zinc-50 border border-zinc-200 rounded-lg px-3 py-2 text-zinc-800 text-sm focus:outline-none focus:border-zinc-400" onchange="calculateAll()">
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-3 gap-2">
+                                    <div>
+                                        <label class="label-text">Test TAT</label>
+                                        <input type="number" id="evc_q_test_tat" value="8.00" step="0.01" class="w-full bg-zinc-50 border border-zinc-200 rounded-lg px-3 py-2 text-zinc-800 text-sm focus:outline-none focus:border-zinc-400" onchange="calculateAll()">
+                                    </div>
+                                    <div>
+                                        <label class="label-text">Test HC</label>
+                                        <input type="number" id="evc_q_test_worker" value="3.0" step="0.1" class="w-full bg-zinc-50 border border-zinc-200 rounded-lg px-3 py-2 text-zinc-800 text-sm focus:outline-none focus:border-zinc-400" onchange="calculateAll()">
+                                    </div>
+                                    <div>
+                                        <label class="label-text">Lines</label>
+                                        <input type="number" id="evc_q_line" value="3" class="w-full bg-zinc-50 border border-zinc-200 rounded-lg px-3 py-2 text-zinc-800 text-sm focus:outline-none focus:border-zinc-400" onchange="calculateAll()">
+                                    </div>
+                                </div>
+                                <div class="bg-zinc-50 rounded-lg p-3 text-center border border-zinc-100 mt-4">
+                                    <div class="text-[10px] font-bold text-zinc-400 uppercase">Daily Capa</div>
+                                    <div class="text-xl font-bold text-zinc-900" id="evc_q_capa_d">0</div>
+                                    <div class="text-[9px] text-zinc-400 mt-1" id="evc_q_bottleneck"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-xl border border-zinc-200 p-6 shadow-sm">
+                            <h3 class="text-sm font-bold text-zinc-900 mb-4 flex justify-between">
+                                Tykon (Indiv.)
+                                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                            </h3>
+                            <div class="space-y-4">
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="label-text">Assy TAT</label>
+                                        <input type="number" id="evc_t_assy_tat" value="5.00" step="0.01" class="w-full bg-zinc-50 border border-zinc-200 rounded-lg px-3 py-2 text-zinc-800 text-sm focus:outline-none focus:border-zinc-400" onchange="calculateAll()">
+                                    </div>
+                                    <div>
+                                        <label class="label-text">Assy HC</label>
+                                        <input type="number" id="evc_t_assy_worker" value="2.0" step="0.1" class="w-full bg-zinc-50 border border-zinc-200 rounded-lg px-3 py-2 text-zinc-800 text-sm focus:outline-none focus:border-zinc-400" onchange="calculateAll()">
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-3 gap-2">
+                                    <div>
+                                        <label class="label-text">Test TAT</label>
+                                        <input type="number" id="evc_t_test_tat" value="6.50" step="0.01" class="w-full bg-zinc-50 border border-zinc-200 rounded-lg px-3 py-2 text-zinc-800 text-sm focus:outline-none focus:border-zinc-400" onchange="calculateAll()">
+                                    </div>
+                                    <div>
+                                        <label class="label-text">Test HC</label>
+                                        <input type="number" id="evc_t_test_worker" value="2.0" step="0.1" class="w-full bg-zinc-50 border border-zinc-200 rounded-lg px-3 py-2 text-zinc-800 text-sm focus:outline-none focus:border-zinc-400" onchange="calculateAll()">
+                                    </div>
+                                    <div>
+                                        <label class="label-text">Lines</label>
+                                        <input type="number" id="evc_t_line" value="3" class="w-full bg-zinc-50 border border-zinc-200 rounded-lg px-3 py-2 text-zinc-800 text-sm focus:outline-none focus:border-zinc-400" onchange="calculateAll()">
+                                    </div>
+                                </div>
+                                <div class="bg-zinc-50 rounded-lg p-3 text-center border border-zinc-100 mt-4">
+                                    <div class="text-[10px] font-bold text-zinc-400 uppercase">Daily Capa</div>
+                                    <div class="text-xl font-bold text-zinc-900" id="evc_t_capa_d">0</div>
+                                    <div class="text-[9px] text-zinc-400 mt-1" id="evc_t_bottleneck"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </main>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        const products = [ { id: 'evc_q' }, { id: 'evc_t' } ];
+        const KR_WORKING_DAYS = { '2024': 247, '2025': 246, '2026': 247, '2027': 247 };
+
+        function getVal(id) { return parseFloat(document.getElementById(id).value) || 0; }
+        function setHTML(id, val) { const el = document.getElementById(id); if(el) el.innerHTML = val; }
+        function fmt(num) { return num.toLocaleString(undefined, { maximumFractionDigits: 1, minimumFractionDigits: 0 }); }
+        
+        function calculateCapacity(hc, tat, hours, lines = null) {
+            if (tat <= 0) return 0;
+            let effectiveResource = hc;
+            if (lines !== null) effectiveResource = Math.min(hc, lines);
+            return (effectiveResource * hours) / tat;
+        }
+
+        function switchTab(tabName) {
+            ['rfg', 'rfm', 'evc'].forEach(t => {
+                document.getElementById('view-' + t).classList.add('hidden');
+                const btn = document.getElementById('nav-' + t);
+                btn.classList.remove('bg-zinc-200', 'text-zinc-900');
+                btn.classList.add('text-zinc-500', 'hover:bg-zinc-100', 'hover:text-zinc-900');
+            });
+            document.getElementById('view-' + tabName).classList.remove('hidden');
+            const activeBtn = document.getElementById('nav-' + tabName);
+            activeBtn.classList.remove('text-zinc-500', 'hover:bg-zinc-100', 'hover:text-zinc-900');
+            activeBtn.classList.add('bg-zinc-200', 'text-zinc-900');
+        }
+
+        function populateYearSelector() {
+            const selector = document.getElementById('yearSelector');
+            const currentYear = new Date().getFullYear();
+            const years = Object.keys(KR_WORKING_DAYS).sort((a, b) => b - a); 
+            years.forEach(year => {
+                const option = document.createElement('option');
+                option.value = year;
+                option.textContent = year;
+                selector.appendChild(option);
+            });
+            selector.value = years.includes(currentYear.toString()) ? currentYear.toString() : '2025';
+        }
+
+        function calculateAll() {
+            const hours = getVal('globalWorkTime');
+            const selectedYear = document.getElementById('yearSelector').value;
+            const annualDays = KR_WORKING_DAYS[selectedYear] || 245; 
+            document.getElementById('annualWorkingDaysDisplay').innerText = annualDays;
+            
+            // 1. RF Generator Logic
+            const rfgTotalAssy = getVal('rfg_total_assy_worker');
+            const rfgTotalTest = getVal('rfg_total_test_worker');
+            const rfgTotalLines = getVal('rfg_total_lines');
+
+            const rfgMaxUsable = rfgTotalTest; 
+            const rfgMaxElem = document.getElementById('rfg_max_usable_lines');
+            if (rfgMaxElem) {
+                if (rfgTotalLines > rfgMaxUsable) {
+                    rfgMaxElem.innerHTML = `${rfgMaxUsable} <span class="text-red-500 font-normal">(HC Limit)</span>`;
+                    rfgMaxElem.className = "font-bold text-red-500";
+                } else {
+                    rfgMaxElem.innerHTML = rfgMaxUsable;
+                    rfgMaxElem.className = "font-bold text-zinc-600";
+                }
+            }
+
+            const alloc1kPct = getVal('rfg_1k_alloc_pct');
+            const alloc2kPct = 100 - alloc1kPct;
+            setHTML('rfg_2k_alloc_disp', alloc2kPct.toFixed(0));
+
+            const ratio1kAssy = getVal('rfg_1k_assy_ratio') / 100;
+            const ratio1kTest = getVal('rfg_1k_test_ratio') / 100;
+            const tatAssy2k = getVal('rfg_2k_base_assy_tat');
+            const tatTest2k = getVal('rfg_2k_base_test_tat');
+            const tatAssy1k = tatAssy2k * ratio1kAssy;
+            const tatTest1k = tatTest2k * ratio1kTest;
+
+            const assyW2k = rfgTotalAssy * (alloc2kPct / 100);
+            const assyW1k = rfgTotalAssy * (alloc1kPct / 100);
+            const testW2k = rfgTotalTest * (alloc2kPct / 100);
+            const testW1k = rfgTotalTest * (alloc1kPct / 100);
+            const lines2k = rfgTotalLines * (alloc2kPct / 100);
+            const lines1k = rfgTotalLines * (alloc1kPct / 100);
+
+            const capaAssy2k = calculateCapacity(assyW2k, tatAssy2k, hours);
+            const capaTest2k = calculateCapacity(testW2k, tatTest2k, hours, lines2k);
+            const finalCapa2k = Math.min(capaAssy2k, capaTest2k);
+            const capaAssy1k = calculateCapacity(assyW1k, tatAssy1k, hours);
+            const capaTest1k = calculateCapacity(testW1k, tatTest1k, hours, lines1k);
+            const finalCapa1k = Math.min(capaAssy1k, capaTest1k);
+
+            const totalRfgCapaDaily = finalCapa2k + finalCapa1k;
+            const totalRfgCapaYearly = totalRfgCapaDaily * annualDays;
+            const totalRfgCapaMonthly = totalRfgCapaYearly / 12;
+
+            setHTML('rfg_total_capa_d', fmt(totalRfgCapaDaily));
+            setHTML('rfg_total_capa_m', fmt(totalRfgCapaMonthly));
+            setHTML('rfg_total_capa_y', fmt(totalRfgCapaYearly));
+
+            let bnMsgRfg = "";
+            if (capaAssy2k < capaTest2k) bnMsgRfg += "2K: Assembly Limited. ";
+            else if (capaTest2k < capaAssy2k) bnMsgRfg += "2K: Test Limited. ";
+            if (capaAssy1k < capaTest1k) bnMsgRfg += "1K: Assembly Limited.";
+            else if (capaTest1k < capaAssy1k) bnMsgRfg += "1K: Test Limited.";
+            if(bnMsgRfg === "") bnMsgRfg = "Process Balanced";
+            setHTML('rfg_bottleneck', bnMsgRfg);
+
+            // 2. RF Matcher Logic
+            const rfmTotalAssy = getVal('rfm_total_assy_worker');
+            const rfmTotalTest = getVal('rfm_total_test_worker');
+            const rfmTotalLines = getVal('rfm_total_lines');
+
+            const rfmMaxUsable = rfmTotalTest;
+            const rfmMaxElem = document.getElementById('rfm_max_usable_lines');
+            if (rfmMaxElem) {
+                 if (rfmTotalLines > rfmMaxUsable) {
+                    rfmMaxElem.innerHTML = `${rfmMaxUsable} <span class="text-red-500 font-normal">(HC Limit)</span>`;
+                    rfmMaxElem.className = "font-bold text-red-500";
+                } else {
+                    rfmMaxElem.innerHTML = rfmMaxUsable;
+                    rfmMaxElem.className = "font-bold text-zinc-600";
+                }
+            }
+
+            const allocSrfmPct = getVal('rfm_srfm_alloc_pct');
+            const allocDrfmPct = 100 - allocSrfmPct;
+            setHTML('rfm_drfm_alloc_disp', allocDrfmPct.toFixed(0));
+
+            const ratioSrfmAssy = getVal('rfm_srfm_assy_ratio') / 100;
+            const ratioSrfmTest = getVal('rfm_srfm_test_ratio') / 100;
+            const tatAssyDrfm = getVal('rfm_drfm_base_assy_tat');
+            const tatTestDrfm = getVal('rfm_drfm_base_test_tat');
+            const tatAssySrfm = tatAssyDrfm * ratioSrfmAssy;
+            const tatTestSrfm = tatTestDrfm * ratioSrfmTest;
+
+            const assyWDrfm = rfmTotalAssy * (allocDrfmPct / 100);
+            const assyWSrfm = rfmTotalAssy * (allocSrfmPct / 100);
+            const testWDrfm = rfmTotalTest * (allocDrfmPct / 100);
+            const testWSrfm = rfmTotalTest * (allocSrfmPct / 100);
+            const linesDrfm = rfmTotalLines * (allocDrfmPct / 100);
+            const linesSrfm = rfmTotalLines * (allocSrfmPct / 100);
+
+            const capaAssyDrfm = calculateCapacity(assyWDrfm, tatAssyDrfm, hours);
+            const capaTestDrfm = calculateCapacity(testWDrfm, tatTestDrfm, hours, linesDrfm);
+            const finalCapaDrfm = Math.min(capaAssyDrfm, capaTestDrfm);
+            const capaAssySrfm = calculateCapacity(assyWSrfm, tatAssySrfm, hours);
+            const capaTestSrfm = calculateCapacity(testWSrfm, tatTestSrfm, hours, linesSrfm);
+            const finalCapaSrfm = Math.min(capaAssySrfm, capaTestSrfm);
+
+            const totalRfmCapaDaily = finalCapaDrfm + finalCapaSrfm;
+            const totalRfmCapaYearly = totalRfmCapaDaily * annualDays;
+            const totalRfmCapaMonthly = totalRfmCapaYearly / 12;
+
+            setHTML('rfm_total_capa_d', fmt(totalRfmCapaDaily));
+            setHTML('rfm_total_capa_m', fmt(totalRfmCapaMonthly));
+            setHTML('rfm_total_capa_y', fmt(totalRfmCapaYearly));
+
+            let bnMsgRfm = "";
+            if (capaAssyDrfm < capaTestDrfm) bnMsgRfm += "DRFM: Assembly Limited. ";
+            else if (capaTestDrfm < capaAssyDrfm) bnMsgRfm += "DRFM: Test Limited. ";
+            if (capaAssySrfm < capaTestSrfm) bnMsgRfm += "SRFM: Assembly Limited.";
+            else if (capaTestSrfm < capaAssySrfm) bnMsgRfm += "SRFM: Test Limited.";
+            if(bnMsgRfm === "") bnMsgRfm = "Process Balanced";
+            setHTML('rfm_bottleneck', bnMsgRfm);
+
+            // 3. EVC Logic
+            const evcTotalAssy = getVal('evc_com_total_assy_worker');
+            const evcTotalTest = getVal('evc_com_total_test_worker');
+            const evcTotalLines = getVal('evc_com_total_lines');
+
+            const evcMaxUsable = evcTotalTest;
+            const evcMaxElem = document.getElementById('evc_com_max_usable_lines');
+            if (evcMaxElem) {
+                 if (evcTotalLines > evcMaxUsable) {
+                    evcMaxElem.innerHTML = `${evcMaxUsable} <span class="text-red-500 font-normal">(HC Limit)</span>`;
+                    evcMaxElem.className = "font-bold text-red-500";
+                } else {
+                    evcMaxElem.innerHTML = evcMaxUsable;
+                    evcMaxElem.className = "font-bold text-zinc-600";
+                }
+            }
+
+            const allocTykonPct = getVal('evc_tykon_alloc_pct');
+            const allocQuantPct = 100 - allocTykonPct;
+            setHTML('evc_quantum_alloc_disp', allocQuantPct.toFixed(0));
+
+            const ratioTykonAssy = getVal('evc_tykon_assy_ratio') / 100;
+            const ratioTykonTest = getVal('evc_tykon_test_ratio') / 100;
+
+            const tatAssyQuant = getVal('evc_q_base_assy_tat');
+            const tatTestQuant = getVal('evc_q_base_test_tat');
+            
+            const tatAssyTykon = tatAssyQuant * ratioTykonAssy;
+            const tatTestTykon = tatTestQuant * ratioTykonTest;
+
+            const assyWQuant = evcTotalAssy * (allocQuantPct / 100);
+            const assyWTykon = evcTotalAssy * (allocTykonPct / 100);
+            const testWQuant = evcTotalTest * (allocQuantPct / 100);
+            const testWTykon = evcTotalTest * (allocTykonPct / 100);
+            const linesQuant = evcTotalLines * (allocQuantPct / 100);
+            const linesTykon = evcTotalLines * (allocTykonPct / 100);
+
+            const capaAssyQuant = calculateCapacity(assyWQuant, tatAssyQuant, hours);
+            const capaTestQuant = calculateCapacity(testWQuant, tatTestQuant, hours, linesQuant);
+            const finalCapaQuant = Math.min(capaAssyQuant, capaTestQuant);
+
+            const capaAssyTykon = calculateCapacity(assyWTykon, tatAssyTykon, hours);
+            const capaTestTykon = calculateCapacity(testWTykon, tatTestTykon, hours, linesTykon);
+            const finalCapaTykon = Math.min(capaAssyTykon, capaTestTykon);
+
+            const totalEvcCapaDaily = finalCapaQuant + finalCapaTykon;
+            const totalEvcCapaYearly = totalEvcCapaDaily * annualDays;
+            const totalEvcCapaMonthly = totalEvcCapaYearly / 12;
+
+            setHTML('evc_com_total_capa_d', fmt(totalEvcCapaDaily));
+            setHTML('evc_com_total_capa_m', fmt(totalEvcCapaMonthly));
+            setHTML('evc_com_total_capa_y', fmt(totalEvcCapaYearly));
+
+            let bnMsgEvc = "";
+            if (capaAssyQuant < capaTestQuant) bnMsgEvc += "Quantum: Assembly Limited. ";
+            else if (capaTestQuant < capaAssyQuant) bnMsgEvc += "Quantum: Test Limited. ";
+            if (capaAssyTykon < capaTestTykon) bnMsgEvc += "Tykon: Assembly Limited.";
+            else if (capaTestTykon < capaAssyTykon) bnMsgEvc += "Tykon: Test Limited.";
+            if(bnMsgEvc === "") bnMsgEvc = "Process Balanced";
+            setHTML('evc_com_bottleneck', bnMsgEvc);
+
+            // 4. EVC Individual
+            products.forEach(p => {
+                const assyCapa = calculateCapacity(getVal(p.id + '_assy_worker'), getVal(p.id + '_assy_tat'), hours);
+                const testCapa = calculateCapacity(getVal(p.id + '_test_worker'), getVal(p.id + '_test_tat'), hours, getVal(p.id + '_line'));
+                const dailyCapa = Math.min(assyCapa, testCapa);
+                const yearlyCapa = dailyCapa * annualDays;
+                
+                setHTML(p.id + '_capa_d', fmt(dailyCapa));
+                
+                const bottleneckMsg = document.getElementById(p.id + '_bottleneck');
+                if (assyCapa < testCapa) bottleneckMsg.innerHTML = "Assembly Limited";
+                else if (testCapa < assyCapa) bottleneckMsg.innerHTML = "Test Limited";
+                else bottleneckMsg.innerHTML = "Balanced";
+            });
+        }
+
+        populateYearSelector();
+        calculateAll();
+    </script>
+</body>
+</html>
