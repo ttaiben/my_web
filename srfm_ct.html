@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SRFM Cycle Time Analysis</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Varela+Round&display=swap" rel="stylesheet">
+    
+    <script src="srfm_standard_ct.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['"Varela Round"', 'sans-serif'] },
+                    colors: {
+                        zinc: { 50: '#fafafa', 100: '#f4f4f5', 200: '#e4e4e7', 300: '#d4d4d8', 400: '#a1a1aa', 500: '#71717a', 600: '#52525b', 700: '#3f3f46', 800: '#27272a', 900: '#18181b' }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body, input, button { font-family: 'Varela Round', sans-serif !important; }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background-color: #d4d4d8; border-radius: 20px; }
+        input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+    </style>
+</head>
+<body class="bg-white h-screen flex flex-col p-6 overflow-hidden selection:bg-zinc-800 selection:text-white">
+
+    <header class="flex justify-between items-end mb-6 shrink-0">
+        <div>
+            <div class="flex items-center gap-2 mb-1">
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-50 text-indigo-600 uppercase tracking-widest border border-indigo-100">RF Matcher</span>
+                <span class="text-zinc-300">/</span>
+                <span class="text-xs font-bold text-zinc-400 uppercase tracking-widest">SRFM Platform</span>
+            </div>
+            <h1 class="text-2xl font-bold text-zinc-900">Cycle Time Analysis</h1>
+        </div>
+        <div class="flex items-center gap-3">
+            <button onclick="resetToStandard()" class="flex items-center gap-2 px-4 py-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors border border-red-100">
+                <i data-lucide="rotate-ccw" class="w-3 h-3"></i> Reset to Standard
+            </button>
+            <button onclick="saveCurrentState()" class="flex items-center gap-2 px-4 py-2 bg-zinc-800 hover:bg-zinc-900 text-white rounded-lg text-xs font-bold uppercase tracking-wider transition-colors shadow-sm">
+                <i data-lucide="save" class="w-3 h-3"></i> Save Changes
+            </button>
+        </div>
+    </header>
+
+    <div class="grid grid-cols-2 gap-6 mb-8 shrink-0">
+        <div class="bg-blue-50 border border-blue-100 rounded-2xl p-6 relative overflow-hidden shadow-sm">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-blue-100 rounded-bl-full -mr-6 -mt-6 opacity-60"></div>
+            <div class="relative z-10">
+                <h3 class="text-xs font-bold text-blue-500 uppercase tracking-widest mb-1">Total Assembly CT</h3>
+                <div class="flex items-baseline gap-2">
+                    <span id="summary-assy-hrs" class="text-5xl font-bold text-zinc-800 tracking-tight">0.00</span>
+                    <span class="text-sm font-bold text-zinc-400 uppercase">Hours</span>
+                </div>
+                <div class="mt-2 text-blue-400 text-xs font-bold flex items-center gap-1">
+                    <i data-lucide="clock" class="w-3 h-3"></i>
+                    <span id="summary-assy-min">0</span> <span class="font-normal opacity-80">minutes</span>
+                </div>
+            </div>
+        </div>
+        <div class="bg-green-50 border border-green-100 rounded-2xl p-6 relative overflow-hidden shadow-sm">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-green-100 rounded-bl-full -mr-6 -mt-6 opacity-60"></div>
+            <div class="relative z-10">
+                <h3 class="text-xs font-bold text-green-600 uppercase tracking-widest mb-1">Total Test CT</h3>
+                <div class="flex items-baseline gap-2">
+                    <span id="summary-test-hrs" class="text-5xl font-bold text-zinc-800 tracking-tight">0.00</span>
+                    <span class="text-sm font-bold text-zinc-400 uppercase">Hours</span>
+                </div>
+                <div class="mt-2 text-green-500 text-xs font-bold flex items-center gap-1">
+                    <i data-lucide="clock" class="w-3 h-3"></i>
+                    <span id="summary-test-min">0</span> <span class="font-normal opacity-80">minutes</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="flex-1 overflow-y-auto pr-2 pb-10 space-y-12">
+        <div class="grid grid-cols-1 gap-8">
+            <div class="space-y-4">
+                <div class="flex items-center gap-2 pb-2 border-b border-zinc-100">
+                    <div class="w-2 h-2 rounded-full bg-blue-500"></div>
+                    <h2 class="text-sm font-bold text-zinc-900 uppercase tracking-wide">Assembly Process</h2>
+                    <span class="ml-auto text-xs font-bold text-zinc-400 bg-zinc-100 px-2 py-0.5 rounded-full" id="assy-count">0 Steps</span>
+                </div>
+                <div class="bg-white border border-zinc-200 rounded-xl overflow-hidden shadow-sm" id="assembly-container"></div>
+            </div>
+            <div class="space-y-4">
+                <div class="flex items-center gap-2 pb-2 border-b border-zinc-100">
+                    <div class="w-2 h-2 rounded-full bg-green-500"></div>
+                    <h2 class="text-sm font-bold text-zinc-900 uppercase tracking-wide">Test Process</h2>
+                    <span class="ml-auto text-xs font-bold text-zinc-400 bg-zinc-100 px-2 py-0.5 rounded-full" id="test-count">0 Steps</span>
+                </div>
+                <div class="bg-white border border-zinc-200 rounded-xl overflow-hidden shadow-sm" id="test-container"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+        let currentData = { assembly: [], test: [] };
+
+        function initSystem() {
+            const savedData = localStorage.getItem('srfm_current_data');
+            if (savedData) {
+                currentData = JSON.parse(savedData);
+            } else {
+                if (typeof SRFM_STANDARD_DATA !== 'undefined') {
+                    currentData = JSON.parse(JSON.stringify(SRFM_STANDARD_DATA));
+                } else {
+                    alert("Error: Standard Data File (srfm_standard_ct.js) not found!");
+                    return;
+                }
+            }
+            document.getElementById('assy-count').innerText = `${currentData.assembly.length} Steps`;
+            document.getElementById('test-count').innerText = `${currentData.test.length} Steps`;
+            renderAll();
+        }
+
+        function renderAll() {
+            renderTable('assembly-container', currentData.assembly, 'assembly');
+            renderTable('test-container', currentData.test, 'test');
+            calculateTotalCT();
+        }
+
+        function renderTable(containerId, data, type) {
+            const container = document.getElementById(containerId);
+            let html = `
+                <div class="grid grid-cols-12 gap-4 px-4 py-2 bg-zinc-50 border-b border-zinc-100 text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
+                    <div class="col-span-2">Type</div>
+                    <div class="col-span-2">Sub</div>
+                    <div class="col-span-1 text-center">No</div>
+                    <div class="col-span-5">Description</div>
+                    <div class="col-span-2 text-center">CT (min)</div>
+                </div>
+                <div class="divide-y divide-zinc-50">`;
+            
+            data.forEach((item, index) => {
+                const colorClass = type === 'assembly' ? 'focus:border-blue-400 focus:ring-blue-100' : 'focus:border-green-400 focus:ring-green-100';
+                html += `
+                    <div class="grid grid-cols-12 gap-4 px-4 py-3 items-center hover:bg-zinc-50/50 transition-colors group text-xs text-zinc-600">
+                        <div class="col-span-2 font-bold text-zinc-400">${item.type}</div>
+                        <div class="col-span-2">${item.sub}</div>
+                        <div class="col-span-1 text-center font-mono text-zinc-400">${item.no}</div>
+                        <div class="col-span-5 font-medium text-zinc-800">${item.desc}</div>
+                        <div class="col-span-2 flex justify-center">
+                            <input type="number" class="ct-input w-20 bg-white border border-zinc-200 rounded-md px-2 py-1.5 text-center font-bold text-zinc-800 text-sm focus:outline-none focus:ring-2 transition-all shadow-sm ${colorClass}" value="${item.ct}" step="0.1" onchange="updateData('${type}', ${index}, this.value)">
+                        </div>
+                    </div>`;
+            });
+            html += `</div>`;
+            container.innerHTML = html;
+        }
+
+        function updateData(type, index, value) {
+            currentData[type][index].ct = parseFloat(value) || 0;
+            calculateTotalCT();
+        }
+
+        function calculateTotalCT() {
+            let assyTotal = 0, testTotal = 0;
+            currentData.assembly.forEach(item => assyTotal += item.ct);
+            currentData.test.forEach(item => testTotal += item.ct);
+
+            document.getElementById('summary-assy-min').innerText = assyTotal.toLocaleString();
+            document.getElementById('summary-assy-hrs').innerText = (assyTotal / 60).toFixed(2);
+            document.getElementById('summary-test-min').innerText = testTotal.toLocaleString();
+            document.getElementById('summary-test-hrs').innerText = (testTotal / 60).toFixed(2);
+        }
+
+        function saveCurrentState() {
+            localStorage.setItem('srfm_current_data', JSON.stringify(currentData));
+            alert("Current settings saved.");
+        }
+
+        function resetToStandard() {
+            if(confirm("Reset all values to Factory Standard?")) {
+                if (typeof SRFM_STANDARD_DATA !== 'undefined') {
+                    currentData = JSON.parse(JSON.stringify(SRFM_STANDARD_DATA));
+                    localStorage.removeItem('srfm_current_data');
+                    renderAll();
+                }
+            }
+        }
+
+        initSystem();
+    </script>
+</body>
+</html>
